@@ -21,3 +21,13 @@ executable qoi-viewer
                       array
     hs-source-dirs:   qoi
     default-language: Haskell2010
+
+executable basic
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:    base,
+                      mtl,
+                      text,
+                      megaparsec
+    hs-source-dirs:   basic
+    default-language: Haskell2010

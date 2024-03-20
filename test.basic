@@ -1,0 +1,3 @@
+INPUT A
+LET X = A + 5
+PRINT X
