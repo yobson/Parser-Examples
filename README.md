@@ -11,6 +11,9 @@ You can run it with:
 cabal run -- basic <PATH_TO_BASIC_FILE>
 ```
 
+## Lego robot controller
+See [this](https://github.com/yobson/haskell-lego/tree/main/spikectl)
+
 ## QOI Viewer
 
 This is a simple image viewer for displaying images in the [qoi format](https://qoiformat.org).
