@@ -175,9 +175,8 @@ bitmapOfQOI (Image Header{..} chunks) = bitmapOfByteString (fromIntegral width) 
           let !cache' = cache // [(indexPosition p, p)]
            in p : chunkToPixel cache' p xs
         chunkToPixel cache _ (QoiOpIndex ind : xs) =
-          let p = cache ! ind in
-          let !cache' = cache // [(indexPosition p, p)]
-           in p : chunkToPixel cache' p xs
+          let p = cache ! ind
+           in p : chunkToPixel cache p xs
         chunkToPixel cache lp (QoiOpDiff dr dg db : xs) = 
           let !p = Pixel (r lp + dr) (g lp + dg) (b lp + db) (a lp) in
           let !cache' = cache // [(indexPosition p, p)]
