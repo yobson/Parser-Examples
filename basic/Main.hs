@@ -56,10 +56,10 @@ program = many (statement <* newline)
 
 statement :: Parser Stmt
 statement =  try (Print <$> (printL *> exprList))
-         <|> try (liftA2 IF (comp <* thenL) statement)
          <|> try (Input <$> (inputL *> varList))
+         <|> try (liftA2 IF (comp <* thenL) statement)
          <|> try (liftA2 LET (letL *> lexme upperChar <* assignL) expression)
-         <|>     (liftA2 While (comp <* thenL) (statement <* endL))
+         <|>     (liftA2 While (whileL *> comp <* thenL <* eol) (program <* endL))
 
 exprList :: Parser ExprList
 exprList = ExprList <$> printExpr `sepBy1` commaL
@@ -141,7 +141,7 @@ data Stmt = Print ExprList
           | IF (Expr Bool) Stmt
           | Input [Char]
           | LET Char (Expr Int)
-          | While (Expr Bool) Stmt
+          | While (Expr Bool) [Stmt]
           deriving Show
 
 type Eval = ExceptT String (StateT [(Char, Int)] IO)
@@ -206,7 +206,7 @@ evalStmt (LET c e) = do
 evalStmt (While e s) = do
   cond <- evalExpr e
   when cond $ do
-    evalStmt s
+    mapM_ evalStmt s
     evalStmt (While e s)
 
 

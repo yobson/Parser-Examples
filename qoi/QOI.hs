@@ -77,7 +77,7 @@ instance Binary QoiChunk where
       0xFE -> QoiOpRGB <$> get <*> get <*> get
       0xFF -> QoiOpRGBA <$> get <*> get <*> get <*> get
       _ -> case b1 `shift` (-6) of
-             0 -> return $! QoiOpIndex $ b1 .&. 0x3F
+             0 -> return $! QoiOpIndex $! b1 .&. 0x3F
              1 -> return $! QoiOpDiff
                (((b1 .&. 0b00110000) `shiftR` 4) - 2)
                (((b1 .&. 0b00001100) `shiftR` 2) - 2)
@@ -138,9 +138,11 @@ indexPosition Pixel{..} = fromInteger $! ((r' * 3) + (g' * 5) + (b' * 7) + (a' *
 
 qoiFromFile :: FilePath -> IO QoiImage
 qoiFromFile = decodeFile
+{-# INLINE qoiFromFile #-}
 
 imageDim :: QoiImage -> (Int, Int)
 imageDim (Image Header{..} _) = (fromIntegral width, fromIntegral height)
+{-# INLINE imageDim #-}
 
 bitmapOfQOI :: QoiImage -> Picture
 bitmapOfQOI (Image Header{..} chunks) = bitmapOfByteString (fromIntegral width) (fromIntegral height) bmpFormat (buildBS chunks) True
@@ -156,14 +158,16 @@ bitmapOfQOI (Image Header{..} chunks) = bitmapOfByteString (fromIntegral width) 
 
         pixel2bsb :: Pixel -> Builder
         pixel2bsb Pixel{..} = word8 r <> word8 g <> word8 b <> word8 a
+        {-# INLINE pixel2bsb #-}
 
         pixels2bsb :: [Pixel] -> Builder
         pixels2bsb = mconcat . map pixel2bsb
+        {-# INLINE pixels2bsb #-}
 
         chunkToPixel :: Array Word8 Pixel -> Pixel -> [QoiChunk] -> [Pixel]
         chunkToPixel _ _ [] = []
-        chunkToPixel cache _  (QoiOpRGB r g b : xs) = 
-          let !p = Pixel r g b 255 in
+        chunkToPixel cache lp  (QoiOpRGB r g b : xs) = 
+          let !p = Pixel r g b (a lp) in
           let !cache' = cache // [(indexPosition p, p)]
            in p : chunkToPixel cache' p xs
         chunkToPixel cache _  (QoiOpRGBA r g b a : xs) = 
@@ -180,4 +184,4 @@ bitmapOfQOI (Image Header{..} chunks) = bitmapOfByteString (fromIntegral width) 
            in p : chunkToPixel cache' p xs
         chunkToPixel cache lp (QoiOpRun 0 : xs) = lp : chunkToPixel cache lp xs
         chunkToPixel cache lp (QoiOpRun n : xs) = lp : chunkToPixel cache lp ((QoiOpRun $! n - 1) : xs)
-        {-# inline chunkToPixel #-}
+        {-# INLINE chunkToPixel #-}
